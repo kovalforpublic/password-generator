@@ -7,12 +7,10 @@ const generateButton = document.querySelector(className + ' > button');
 const copyInput = document.querySelector('.password > input');
 const copyButton = document.querySelector('.password > button');
 
-const symbolTypes = ['lowCaseChars', 'upperCaseChars', 'numbers', 'specialSymbols'];
-
 class Symbols {
     constructor(symbols, regex) {
-        this.regex = regex;
         this.symbols = symbols;
+        this.regex = regex;
     }
     getRegex() {
         return this.regex;
@@ -28,16 +26,29 @@ class Symbols {
     }
 }
 class Password {
-    constructor(password, length) {
+    constructor(password) {
         this.itself = password;
         this.typesMissed = ['lowCaseChars', 'upperCaseChars', 'numbers', 'specialSymbols'];
         this.allTypes = ['lowCaseChars', 'upperCaseChars', 'numbers', 'specialSymbols'];
+        
+        const lowCaseChars = new Symbols('abcdefghijklmnopqrstuvwxyz', /[a-z]/);
+        const upperCaseChars = new Symbols('ABCDEFGHIJKLMNOPQRSTUVWXYZ', /[A-Z]/);
+        const numbers = new Symbols('0123456789', /\d/);
+        const specialSymbols = new Symbols('!#$%&()*+,-./:;<=>?@[\]^_{|}~', /[!#$%&()\*\+,-.\/:;<=>?@\[\]\^_{|}~]/);
+        
+        this.types = new Map();
+        
+        this.types.set('lowCaseChars', lowCaseChars);
+        this.types.set('upperCaseChars', upperCaseChars);
+        this.types.set('numbers', numbers);
+        this.types.set('specialSymbols', specialSymbols);
     }
     get() {
         return this.itself;
     }
-    increment(newSymbol) {
-        this.itself += newSymbol;
+    increment(type) {
+        const currentSymbols = this.types.get(type);
+        this.itself += currentSymbols.getRandom();
     }
     update(newPwd) {
         this.itself = newPwd;
@@ -46,62 +57,35 @@ class Password {
         this.typesMissed = this.typesMissed.filter(x => x !== type);
     }
     getRandomType(array) {
-        return array[Math.floor(Math.random() * symbolTypes.length)]
+        return array[Math.floor(Math.random() * this.types.size)]
     }
-
-
+    getCurrentType(counter) {
+        let currentType;
+        if (counter <= 4) {
+            currentType = this.getRandomType(this.typesMissed);
+            if (currentType === undefined) {
+                currentType = this.getRandomType(this.allTypes);
+            }
+        } else {
+            currentType = this.getRandomType(this.allTypes);
+        }
+        return currentType;
+    }
 }
-
-const lowCaseChars = new Symbols('abcdefghijklmnopqrstuvwxyz', /[a-z]/);
-const upperCaseChars = new Symbols('ABCDEFGHIJKLMNOPQRSTUVWXYZ', /[A-Z]/);
-const numbers = new Symbols('0123456789', /\d/);
-const specialSymbols = new Symbols('!#$%&()*+,-./:;<=>?@[\]^_{|}~', /[!#$%&()\*\+,-.\/:;<=>?@\[\]\^_{|}~]/);
 
 function generatePassword(length) {
     return new Promise(function(resolve) {
         let counter = length;
         const password = new Password('');
-        if (length === 4) {
-            password.increment(lowCaseChars.getRandom());
-            password.increment(upperCaseChars.getRandom());
-            password.increment(numbers.getRandom());
-            password.increment(specialSymbols.getRandom());
-            password.update(randomise(password.get()));
-        } else {
-            while (isDuplicate(password.get())) {
-                password.update('');
-                counter = length;
+        while (isDuplicate(password.get())) {
+            password.update('');
+            counter = length;
 
-                while (counter) {
-                    if (counter <= 3) {
-                        currentType = password.getRandomType(password.typesMissed);
-                        if (currentType === undefined) {
-                            currentType = password.getRandomType(password.allTypes);
-                        }
-                    } else {
-                        currentType = password.getRandomType(password.allTypes);
-                    }
-
-                    switch (currentType) {
-                        case 'lowCaseChars':
-                            password.increment(lowCaseChars.getRandom());
-                            password.includeType('lowCaseChars');
-                            break;
-                        case 'upperCaseChars':
-                            password.increment(upperCaseChars.getRandom());
-                            password.includeType('upperCaseChars');
-                            break;
-                        case 'numbers':
-                            password.increment(numbers.getRandom());
-                            password.includeType('numbers');
-                            break;
-                        case 'specialSymbols':
-                            password.increment(specialSymbols.getRandom());
-                            password.includeType('specialSymbols');
-                            break;
-                    }
-                    counter--;
-                }
+            while (counter) {
+                const currentType = password.getCurrentType(counter);
+                password.increment(currentType);
+                password.includeType(currentType);
+                counter--;
             }
         }
         resolve(password.get());
