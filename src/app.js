@@ -57,15 +57,12 @@ class Password {
         this.typesMissed = this.typesMissed.filter(x => x !== type);
     }
     getRandomType(array) {
-        return array[Math.floor(Math.random() * this.types.size)]
+        return array[Math.floor(Math.random() * this.typesMissed.length)]
     }
     getCurrentType(counter) {
         let currentType;
-        if (counter <= 4) {
+        if (counter <= 4 && this.typesMissed.length !== 0) {
             currentType = this.getRandomType(this.typesMissed);
-            if (currentType === undefined) {
-                currentType = this.getRandomType(this.allTypes);
-            }
         } else {
             currentType = this.getRandomType(this.allTypes);
         }
