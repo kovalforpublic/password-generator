@@ -26,8 +26,8 @@ class Symbols {
     }
 }
 class Password {
-    constructor(password) {
-        this.itself = password;
+    constructor() {
+        this.itself = '';
         this.typesMissed = ['lowCaseChars', 'upperCaseChars', 'numbers', 'specialSymbols'];
         this.allTypes = ['lowCaseChars', 'upperCaseChars', 'numbers', 'specialSymbols'];
         
@@ -73,7 +73,7 @@ class Password {
 function generatePassword(length) {
     return new Promise(function(resolve) {
         let counter = length;
-        const password = new Password('');
+        const password = new Password();
         while (isDuplicate(password.get())) {
             password.update('');
             counter = length;
