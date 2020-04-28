@@ -48,6 +48,7 @@ async function runTests() {
             }
         }
         counter.tests++
+        console.log('counter.tests: ', counter.tests);
     });
     console.log('wrongTypes: ', counter.wrongTypes);
     console.log('counter.Wrongs: ', counter.wrongs);
